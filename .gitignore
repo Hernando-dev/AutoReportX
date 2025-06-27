@@ -1,0 +1,5 @@
+dados/dados_brutos.csv
+__pycache__
+.env
+*.log
+historico/relatorios/*
