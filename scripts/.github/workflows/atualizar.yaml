@@ -1,0 +1,66 @@
+name: Atualizar Dados de Hora em Hora
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  atualizar-dados:
+    runs-on: ubuntu-latest
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      NOTIFY_EMAILS: ${{ secrets.NOTIFY_EMAILS }}
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar dependências
+        run: |
+          pip install -r requirements.txt
+
+      - name: Executar script Python
+        id: run_script
+        run: |
+          python scripts/atualizar_dados.py
+
+      - name: Gerar gráfico de tendência
+        run: |
+          python scripts/gerar_grafico.py
+
+      - name: Verificar mudanças nos dados
+        id: changes
+        run: |
+          git diff --quiet && echo "No changes" || echo "Changes detected"
+
+      - name: Commit e Push automático (se houver mudanças)
+        if: steps.changes.stdout != 'No changes'
+        run: |
+          git config --local user.email "github-actions@example.com"
+          git config --local user.name "GitHub Actions"
+          git add dados/dados_atualizados.csv historico/relatorios/ dados/grafico_tendencia.png
+          git commit -m "Atualização automática de dados $(date)"
+          git push
+
+      - name: Enviar e-mail com anexos
+        if: steps.changes.stdout != 'No changes'
+        run: |
+          python scripts/enviar_email.py
+
+      - name: Notificação de erro por e-mail
+        if: ${{ job.status == 'failure' }}
+        uses: dawidd6/action-sendgrid@v3
+        with:
+          sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          to: ${{ secrets.NOTIFY_EMAILS }}
+          from: github-actions@example.com
+          subject: "🚨 Falha na atualização dos dados"
+          body: |
+            Ocorreu uma falha ao executar o pipeline às $(date).
+
+            Detalhes: https://github.com/ ${{ github.repository }}/actions/runs/${{ github.run_id }}
