@@ -1,0 +1,19 @@
+/relatorio-automatico/
+│
+├── scripts/
+│   ├── atualizar_dados.py     ← Processa os dados
+│   ├── gerar_grafico.py       ← Gera gráfico de tendência
+│   └── enviar_email.py        ← Envia e-mail com anexos
+│
+├── dados/
+│   ├── dados_brutos.csv       ← Dados iniciais (simulado)
+│   ├── dados_atualizados.csv  ← Resultado da query
+│   └── grafico_tendencia.png  ← Gráfico gerado automaticamente
+│
+├── historico/
+│   └── relatorios/            ← Cópias dos arquivos com timestamp
+│
+├── .gitignore
+├── README.md
+├── requirements.txt
+└── .github/workflows/atualizar.yaml
